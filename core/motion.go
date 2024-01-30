@@ -6,13 +6,13 @@ import (
 )
 
 // checkMotionSize проверяет размеры свечей в Motion
-func (mng *Manager) checkMotionSize() bool {
-	templateSize := mng.calculateSize(mng.Template.Candles)
-	motionSize := mng.calculateSize(mng.Motion.Candles)
+func (buf *Buffer) checkMotionSize() bool {
+	templateSize := calculateSize(buf.Candles)
+	motionSize := calculateSize(buf.Motion)
 
 	// Условие размера зависит от количества шаблонных свечей
 	multiplier := 1.5
-	if len(mng.Template.Candles) == 3 {
+	if buf.Size == 3 {
 		multiplier = 2
 	}
 
@@ -20,7 +20,7 @@ func (mng *Manager) checkMotionSize() bool {
 }
 
 // calculateSize вычисляет суммарный размер свечей
-func (mng *Manager) calculateSize(candles []*pricer.Candle) float64 {
+func calculateSize(candles []*pricer.Candle) float64 {
 	var size float64
 	for _, candle := range candles {
 		size += math.Abs(candle.Close - candle.Open)
@@ -29,16 +29,15 @@ func (mng *Manager) calculateSize(candles []*pricer.Candle) float64 {
 }
 
 // initMotionFromTemplate инициализирует Motion последними свечами из Template одного цвета
-func (mng *Manager) initMotionFromTemplate() {
-	if len(mng.Template.Candles) == 0 {
+func (buf *Buffer) initMotionFromTemplate() {
+	if len(buf.Candles) == 0 {
 		return
 	}
-
-	lastColor := mng.Template.Candles[len(mng.Template.Candles)-1].Color
-	for i := len(mng.Template.Candles) - 1; i >= 0; i-- {
-		if mng.Template.Candles[i].Color != lastColor {
+	lastColor := buf.Candles[len(buf.Candles)-1].Color
+	for i := len(buf.Candles) - 1; i >= 0; i-- {
+		if buf.Candles[i].Color != lastColor {
 			break
 		}
-		mng.Motion.Candles = append([]*pricer.Candle{mng.Template.Candles[i]}, mng.Motion.Candles...)
+		buf.Motion = append([]*pricer.Candle{buf.Candles[i]}, buf.Motion...)
 	}
 }

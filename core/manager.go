@@ -8,73 +8,90 @@ import (
 
 func (mng *Manager) reset() {
 	mng.Status = WaitTemplateCandlesStatus
-	mng.Template.Candles = nil
-	mng.Motion.Candles = nil
-	mng.Breakdown.Candles = nil
+	for _, v := range mng.Buffers {
+		v.reset()
+	}
 }
 
-func (mng *Manager) WaitTemplateCandles(candle *pricer.Candle) error {
-	mng.Template.Candles = append(mng.Template.Candles, candle)
-	if len(mng.Template.Candles) == mng.Template.Size {
-		if mng.checkTemplate() {
-			mng.TemplateCount++
-			//fmt.Printf("TEMPLATE! Candle time: %s\n", time.Unix(candle.Time, 0).Format(time.DateTime))
-			//fmt.Println(mng.Template.Candles[1])
-			mng.Status = WaitMotionCandlesStatus
-			return nil
-		} else {
-			mng.Template.Candles = mng.Template.Candles[1:]
-		}
+func (buf *Buffer) reset() {
+	buf.isMain = false
+	buf.Status = WaitTemplateCandlesStatus
+	buf.Candle = &pricer.Candle{}
+	buf.Candles = make([]*pricer.Candle, 0)
+	buf.Motion = make([]*pricer.Candle, 0)
+	buf.Breakdown = make([]*pricer.Candle, 0)
+}
 
+func (mng *Manager) SetMain(buf *Buffer) {
+	for _, b := range mng.Buffers {
+		if b.Size == buf.Size {
+			b.isMain = true
+		} else {
+			b.isMain = false
+		}
+	}
+}
+
+func (buf *Buffer) WaitTemplateCandles(candle *pricer.Candle) error {
+	buf.Candles = append(buf.Candles, candle)
+	if len(buf.Candles) == buf.Size {
+		if buf.checkTemplate() {
+			fmt.Printf("TEMPLATE! Candle time: %s\n", time.Unix(buf.Candles[1].Time, 0).UTC().Format(time.DateTime))
+			buf.Stat.TemplateCount++
+			buf.Status = WaitMotionCandlesStatus
+			buf.Candle = buf.Candles[1]
+		} else {
+			buf.Candles = buf.Candles[1:]
+		}
 	}
 	return nil
 }
 
-func (mng *Manager) WaitMotionCandles(candle *pricer.Candle) error {
+func (buf *Buffer) WaitMotionCandles(candle *pricer.Candle) error {
 	// Если Motion пуст, начинаем с последних свечей одного цвета из Template
-	if len(mng.Motion.Candles) == 0 {
-		mng.initMotionFromTemplate()
+	if len(buf.Motion) == 0 {
+		buf.initMotionFromTemplate()
 	}
 
 	// Проверяем цвет текущей свечи с первой свечой в Motion
-	if candle.Color != mng.Motion.Candles[0].Color {
+	if candle.Color != buf.Motion[0].Color {
 		// Если цвета разные, проверяем размер и очищаем Motion
-		if mng.checkMotionSize() {
-			mng.MotionCount++
-			mng.Status = WaitBreakdownCandlesStatus
+		if buf.checkMotionSize() {
+			buf.Stat.MotionCount++
+			buf.Status = WaitBreakdownCandlesStatus
 			return nil
 		}
-		mng.reset()
+		buf.reset()
 		return nil
 	}
-
 	// Добавляем свечу в Motion, если цвет совпадает
-	mng.Motion.Candles = append(mng.Motion.Candles, candle)
+	buf.Motion = append(buf.Motion, candle)
 
 	return nil
+
 }
 
-func (mng *Manager) WaitBreakdownCandles(candle *pricer.Candle) error {
+func (buf *Buffer) WaitBreakdownCandles(candle *pricer.Candle) error {
 	// Если Breakdown пуст, начинаем с текущей свечи
-	if len(mng.Breakdown.Candles) == 0 {
-		mng.Breakdown.Candles = append(mng.Breakdown.Candles, candle)
+	if len(buf.Breakdown) == 0 {
+		buf.Breakdown = append(buf.Breakdown, candle)
 		return nil
 	}
 
 	// Проверяем цвет текущей свечи с первой свечой в Breakdown
-	if candle.Color != mng.Breakdown.Candles[0].Color {
+	if candle.Color != buf.Breakdown[0].Color {
 		// Если цвета разные, проверяем условия пробоя и очищаем Breakdown
-		if mng.checkBreakdown() {
-			mng.BreakdownCount++
+		if buf.checkBreakdown() {
+			buf.Stat.BreakdownCount++
 			fmt.Printf("BREAKDOWN! Candle time: %s\n", time.Unix(candle.Time, 0).UTC().Format(time.DateTime))
 			fmt.Printf("Candle: %v\n", candle)
 		}
-		mng.reset()
+		buf.reset()
 		return nil
 	}
 
 	// Добавляем свечу в Breakdown, если цвет совпадает
-	mng.Breakdown.Candles = append(mng.Breakdown.Candles, candle)
-
+	buf.Breakdown = append(buf.Breakdown, candle)
 	return nil
+
 }

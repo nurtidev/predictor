@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	candles, err := pricer.LoadCandlesFromFile("./data/btc_usdt_5m_30d.csv")
+	candles, err := pricer.LoadCandlesFromFile("./data/btc_usdt_5m_1d.csv")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +25,10 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Template count: %d\n", mng.TemplateCount)
-	fmt.Printf("Motion count: %d\n", mng.MotionCount)
-	fmt.Printf("Breakdown count: %d\n", mng.BreakdownCount)
+	for _, buf := range mng.Buffers {
+		fmt.Printf("Buffer size: %d\n", buf.Size)
+		fmt.Printf("Template count: %d\n", buf.Stat.TemplateCount)
+		fmt.Printf("Motion count: %d\n", buf.Stat.MotionCount)
+		fmt.Printf("Breakdown count: %d\n", buf.Stat.BreakdownCount)
+	}
 }

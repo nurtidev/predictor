@@ -13,50 +13,89 @@ const (
 )
 
 type Manager struct {
-	Status         string
-	Pool           []*pricer.Candle // место для общего хранения свеч
-	Template       *Buffer          // место для хранения свеч среди которых будем искать шаблонную свечу
-	Motion         *Buffer          // место для хранения свеч которые будут подтверждать движение
-	Breakdown      *Buffer          // место для хранения свеч которые будут подтверждать пробой уровня
-	Lifetime       int
+	Status  string
+	Pool    []*pricer.Candle // место для общего хранения свеч
+	Buffers []*Buffer
+}
+
+type Statistic struct {
 	TemplateCount  int
 	MotionCount    int
 	BreakdownCount int
 }
 
 type Buffer struct {
-	Candles      []*pricer.Candle
-	Size         int
-	ResetCounter int
+	isMain           bool
+	Status           string
+	Size             int
+	Lifetime         int
+	Candle           *pricer.Candle   // здесь мы будем хранить шаблонную свечу
+	Candles          []*pricer.Candle // здесь все свечи включая шаблонную
+	Motion           []*pricer.Candle
+	Breakdown        []*pricer.Candle
+	Stat             *Statistic
+	BreakdownPercent float64
 }
 
 func New(cfg *config.Config) (*Manager, error) {
 	return &Manager{
 		Status: WaitTemplateCandlesStatus,
-		Template: &Buffer{
-			Candles: make([]*pricer.Candle, 0),
-			Size:    4,
-		},
-		Motion: &Buffer{
-			Candles: make([]*pricer.Candle, 0),
-			Size:    3,
-		},
-		Breakdown: &Buffer{
-			Candles: make([]*pricer.Candle, 0),
-			Size:    3,
+		Buffers: []*Buffer{
+			{
+				Status:    WaitTemplateCandlesStatus,
+				Size:      3,
+				Lifetime:  10,
+				Candle:    &pricer.Candle{},
+				Candles:   make([]*pricer.Candle, 0),
+				Motion:    make([]*pricer.Candle, 0),
+				Breakdown: make([]*pricer.Candle, 0),
+				Stat: &Statistic{
+					TemplateCount:  0,
+					MotionCount:    0,
+					BreakdownCount: 0,
+				},
+			},
+			{
+				Size:      4,
+				Candle:    &pricer.Candle{},
+				Candles:   make([]*pricer.Candle, 0),
+				Motion:    make([]*pricer.Candle, 0),
+				Breakdown: make([]*pricer.Candle, 0),
+				Stat: &Statistic{
+					TemplateCount:  0,
+					MotionCount:    0,
+					BreakdownCount: 0,
+				},
+			},
+			{
+				Size:      5,
+				Candle:    &pricer.Candle{},
+				Candles:   make([]*pricer.Candle, 0),
+				Motion:    make([]*pricer.Candle, 0),
+				Breakdown: make([]*pricer.Candle, 0),
+				Stat: &Statistic{
+					TemplateCount:  0,
+					MotionCount:    0,
+					BreakdownCount: 0,
+				},
+			},
 		},
 	}, nil
 }
 
 func Analysis(mng *Manager, candle *pricer.Candle) error {
-	switch mng.Status {
-	case WaitTemplateCandlesStatus:
-		return mng.WaitTemplateCandles(candle)
-	case WaitMotionCandlesStatus:
-		return mng.WaitMotionCandles(candle)
-	case WaitBreakdownCandlesStatus:
-		return mng.WaitBreakdownCandles(candle)
-	default:
-		return errors.New("unknown manager status")
+	//mng.Pool = append(mng.Pool, candle)
+	for _, buf := range mng.Buffers {
+		switch buf.Status {
+		case WaitTemplateCandlesStatus:
+			return buf.WaitTemplateCandles(candle)
+		case WaitMotionCandlesStatus:
+			return buf.WaitMotionCandles(candle)
+		case WaitBreakdownCandlesStatus:
+			return buf.WaitBreakdownCandles(candle)
+		default:
+			return errors.New("unknown manager status")
+		}
 	}
+	return errors.New("empty buffers")
 }
