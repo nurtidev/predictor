@@ -2,6 +2,29 @@ package core
 
 import "github.com/nurtidev/predictor/pricer"
 
+func (buf *Buffer) isTrending() bool {
+	if buf.Size < 2 {
+		// Недостаточно данных для определения тренда
+		return false
+	}
+
+	trendColor := buf.Candles[buf.Size-2].Color // Предполагаем, что цвет последней свечи тренда совпадает с предпоследней
+	trendCount := 0
+
+	// Перебираем свечи в обратном порядке, начиная со второй с конца, и считаем количество свечей тренда подряд
+	for i := buf.Size - 2; i >= 0; i-- {
+		if buf.Candles[i].Color == trendColor {
+			trendCount++
+		} else {
+			break
+		}
+	}
+
+	// Проверяем, достаточно ли свечей тренда для установления факта наличия тренда
+	// Здесь вы можете определить свои параметры, например, тренд считается если есть 3 свечи подряд одного цвета
+	return trendCount >= 3
+}
+
 func (buf *Buffer) checkTemplate() bool {
 	switch buf.Size {
 	case 3:

@@ -1,39 +1,96 @@
 package core
 
-import "github.com/nurtidev/predictor/pricer"
+import (
+	"errors"
+	"github.com/nurtidev/predictor/pricer"
+)
 
 // checkBreakdown проверяет условия пробоя
-func (buf *Buffer) checkBreakdown() bool {
-	if len(buf.Breakdown) < 2 {
-		return false // Пробой требует минимум двух свечей
+func (buf *Buffer) checkBreakdown(candle *pricer.Candle) error {
+	if len(buf.Breakdown.Candles) > buf.Breakdown.MaxSize {
+		buf.Status = DoneCandlesStatus
+		return nil
 	}
 
-	lastCandle := buf.Breakdown[len(buf.Breakdown)-1]
-	direction := buf.getBreakdownDirection()
-
-	if direction == "up" {
-		return lastCandle.Close > buf.getTemplateOpenPrice()
-	} else if direction == "down" {
-		return lastCandle.Close < buf.getTemplateOpenPrice()
+	if isDifferentColor(buf.Candle, candle) {
+		if buf.isValidBreakdown() {
+			buf.Alert(candle)
+			buf.Status = AlertCandlesStatus
+			return nil
+		}
+		buf.Status = DoneCandlesStatus
+		return nil
 	}
 
+	buf.Breakdown.Candles = append(buf.Breakdown.Candles, candle)
+
+	return nil
+}
+
+func (buf *Buffer) isValidBreakdown() bool {
+	if len(buf.Breakdown.Candles) < buf.Breakdown.MinSize {
+		return false
+	}
+
+	switch buf.Candle.Color {
+	case pricer.ColorRed:
+		high, _ := getHighestPrice(buf.Motion.Candles)
+		low, _ := getLowestPrice(buf.Breakdown.Candles)
+		isBreakPercent := ((low/high)-1)*100 <= -1*buf.Breakdown.Percent
+		if isBreakPercent && isBreakTemplate(buf.Candle, buf.Breakdown.Candles) {
+			return true
+		}
+	case pricer.ColorGreen:
+		high, _ := getHighestPrice(buf.Breakdown.Candles)
+		low, _ := getLowestPrice(buf.Motion.Candles)
+		isBreakPercent := ((high/low)-1)*100 >= 1.5*buf.Breakdown.Percent
+		if isBreakPercent && isBreakTemplate(buf.Candle, buf.Breakdown.Candles) {
+			return true
+		}
+	}
 	return false
 }
 
-// getBreakdownDirection определяет направление пробоя
-func (buf *Buffer) getBreakdownDirection() string {
-	// Используем вторую свечу в массиве Breakdown для определения направления
-	if len(buf.Breakdown) > 1 && buf.Breakdown[1].Color == pricer.ColorRed {
-		return "down" // Красные свечи указывают на пробой вниз
+func isBreakTemplate(template *pricer.Candle, candles []*pricer.Candle) bool {
+	switch template.Color {
+	case pricer.ColorRed:
+		for _, candle := range candles {
+			if candle.Close < template.Close {
+				return true
+			}
+		}
+	case pricer.ColorGreen:
+		for _, candle := range candles {
+			if candle.Close > template.Close {
+				return true
+			}
+		}
 	}
-	return "up" // В противном случае пробой вверх (по умолчанию для зеленых свечей)
+	return false
 }
 
-// getTemplateOpenPrice возвращает цену открытия шаблонной свечи
-func (buf *Buffer) getTemplateOpenPrice() float64 {
-	// Используем вторую свечу в массиве Template как шаблонную
-	if len(buf.Candles) > 1 {
-		return buf.Candles[1].Open
+func getHighestPrice(arr []*pricer.Candle) (float64, error) {
+	if len(arr) == 0 {
+		return 0, errors.New("empty candles arr")
 	}
-	return 0 // Возвращаем 0, если шаблонных свечей нет
+	high := arr[0].High
+	for _, v := range arr {
+		if high < v.High {
+			high = v.High
+		}
+	}
+	return high, nil
+}
+
+func getLowestPrice(arr []*pricer.Candle) (float64, error) {
+	if len(arr) == 0 {
+		return 0, errors.New("empty candles arr")
+	}
+	low := arr[0].Low
+	for _, v := range arr {
+		if low > v.Low {
+			low = v.Low
+		}
+	}
+	return low, nil
 }
