@@ -37,14 +37,14 @@ func (buf *Buffer) Alert(candle *pricer.Candle) {
 		color = pricer.Reset // No color or default terminal color
 	}
 
-	//str := fmt.Sprintf("💣 BOOOOOM 💣 \n Market: %s\n Timeframe: %s\n Breakdown found!\n Time: %s\n Template time: %s\n \n",
-	//	candle.Market,
-	//	candle.Timeframe,
-	//	time.Unix(candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-	//	time.Unix(buf.Candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-	//)
-	//
-	//sendMsgTelegram(str)
+	str := fmt.Sprintf("💣 BOOOOOM 💣 \n Market: %s\n Timeframe: %s\n Breakdown found!\n Time: %s\n Template time: %s\n \n",
+		candle.Market,
+		candle.Timeframe,
+		time.Unix(candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
+		time.Unix(buf.Candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
+	)
+
+	sendMsgTelegram(str)
 
 	fmt.Printf("%sBreakdown found!\t Time: %s\t Template time: %s\t %s\n",
 		color,

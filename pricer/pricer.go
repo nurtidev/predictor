@@ -32,10 +32,12 @@ func (c *Candle) Print(header string) {
 		color = Reset // No color or default terminal color
 	}
 
-	fmt.Printf("%s %s\t Time: %s\t Open: %.2f\t Close: %.2f\t Low: %.2f\t High: %.2f\t%s\n",
+	fmt.Printf("%s %s\t Time: %s\t Market: %s\t Timeframe: %s\t Open: %.2f\t Close: %.2f\t Low: %.2f\t High: %.2f\t%s\n",
 		color,
 		header,
-		time.Unix(c.Time, 0).UTC().Format(time.DateTime),
+		time.UnixMilli(c.Time).UTC().Format(time.DateTime),
+		c.Market,
+		c.Timeframe,
 		c.Open,
 		c.Close,
 		c.Low,
@@ -56,26 +58,6 @@ type Candle struct {
 	High      float64
 	Volume    float64
 }
-
-type CandleBinance struct {
-	Market                   string
-	TickInterval             string
-	Color                    string
-	OpenTime                 float64
-	Open                     float64
-	High                     float64
-	Low                      float64
-	Close                    float64
-	Volume                   float64
-	CloseTime                float64
-	QuoteAssetVolume         float64
-	NumberOfTrades           int
-	TakerBuyBaseAssetVolume  float64
-	TakerBuyQuoteAssetVolume float64
-	Ignore                   float64
-}
-
-type Candlestick [][]interface{}
 
 func parseCurrencyPairAndTimeframe(filename string) (string, string, error) {
 	// Регулярное выражение для парсинга

@@ -1,0 +1,21 @@
+mode: "realtime" #simulation or realtime
+filepath: "./data/btc_usdt_5m_3d.csv"
+market:
+  - BTCUSDT
+  - ETHUSDT
+timeframe:
+  - 5m
+  - 15m
+telegram:
+  token: ""
+  users:
+    - 1811775131
+    - 1025535666
+trade:
+  breakdown:
+    percent: 0.2
+    min_size: 3
+    max_size: 10
+  motion:
+    min_size: 2
+    max_size: 10
