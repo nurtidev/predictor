@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -44,14 +45,16 @@ func (c *Candle) Print(header string) {
 }
 
 type Candle struct {
-	Idx    int
-	Color  string
-	Time   int64
-	Open   float64
-	Close  float64
-	Low    float64
-	High   float64
-	Volume float64
+	Idx       int
+	Market    string
+	Timeframe string
+	Color     string
+	Time      int64
+	Open      float64
+	Close     float64
+	Low       float64
+	High      float64
+	Volume    float64
 }
 
 type CandleBinance struct {
@@ -74,7 +77,27 @@ type CandleBinance struct {
 
 type Candlestick [][]interface{}
 
+func parseCurrencyPairAndTimeframe(filename string) (string, string, error) {
+	// Регулярное выражение для парсинга
+	re := regexp.MustCompile(`(\w+)_(\w+)_(\w+)_(\w+)\.csv$`)
+	matches := re.FindStringSubmatch(filename)
+
+	if len(matches) < 5 {
+		return "", "", fmt.Errorf("failed to parse filename: %s", filename)
+	}
+
+	// Собираем пару валют и таймфрейм
+	currencyPair := matches[1] + "_" + matches[2] // BTC_USDT
+	timeframe := matches[3]                       // 15m
+
+	return currencyPair, timeframe, nil
+}
+
 func LoadCandlesFromFile(path string) ([]*Candle, error) {
+	currencyPair, timeframe, err := parseCurrencyPairAndTimeframe(path)
+	if err != nil {
+		return nil, err
+	}
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -93,6 +116,8 @@ func LoadCandlesFromFile(path string) ([]*Candle, error) {
 		if err != nil {
 			return nil, err
 		}
+		candle.Market = currencyPair
+		candle.Timeframe = timeframe
 		candles = append(candles, candle)
 	}
 

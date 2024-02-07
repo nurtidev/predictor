@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"github.com/nurtidev/predictor/pricer"
 )
 
@@ -50,11 +51,15 @@ func (mng *Manager) ProcessCandle(candle *pricer.Candle) error {
 		if len(buf.Candles) == buf.Size {
 			if buf.checkTemplate() {
 				//buf.Candles[1].Print("Template candle")
+				template, success := buf.getTemplateCandle()
+				if !success {
+					return errors.New("can't set template candle")
+				}
 				mng.Storage = append(mng.Storage, &Buffer{
 					Status:    WaitMotionCandlesStatus,
 					Size:      buf.Size,
 					Lifetime:  buf.Lifetime,
-					Candle:    buf.Candles[1],
+					Candle:    template,
 					Candles:   buf.Candles,
 					Motion:    &Motion{MinSize: mng.MotionMinSize, MaxSize: mng.MotionMaxSize, Candles: make([]*pricer.Candle, 0)},
 					Breakdown: &Breakdown{MinSize: mng.BreakdownMinSize, MaxSize: mng.BreakdownMaxSize, Percent: mng.BreakdownPercent, Candles: make([]*pricer.Candle, 0)},
@@ -81,4 +86,40 @@ func (mng *Manager) Scan(buf *Buffer, candle *pricer.Candle) error {
 		return buf.checkBreakdown(candle)
 	}
 	return nil
+}
+
+func mergeCandles(candles []*pricer.Candle) (*pricer.Candle, bool) {
+	if len(candles) < 2 {
+		return &pricer.Candle{}, false // Не достаточно свечей для объединения
+	}
+
+	minLow := candles[0].Low
+	maxHigh := candles[0].High
+	totalVolume := candles[0].Volume
+
+	for i, candle := range candles[1:] {
+		if candle.Low < minLow {
+			minLow = candle.Low
+		}
+		if candle.High > maxHigh {
+			maxHigh = candle.High
+		}
+		totalVolume += candle.Volume
+		if i == len(candles)-2 { // Проверяем, что все свечи одного цвета
+			return &pricer.Candle{
+				Idx:       candles[0].Idx,
+				Market:    candles[0].Market,
+				Timeframe: candles[0].Timeframe,
+				Color:     candles[0].Color,
+				Time:      candles[0].Time,
+				Open:      candles[0].Open,
+				Close:     candles[len(candles)-1].Close,
+				Low:       minLow,
+				High:      maxHigh,
+				Volume:    totalVolume,
+			}, true
+		}
+	}
+
+	return &pricer.Candle{}, false
 }

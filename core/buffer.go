@@ -1,9 +1,7 @@
 package core
 
 import (
-	"fmt"
 	"github.com/nurtidev/predictor/pricer"
-	"time"
 )
 
 type CandleStatus string
@@ -47,21 +45,22 @@ func NewBuffer(size int) *Buffer {
 	}
 }
 
-func (buf *Buffer) Alert(candle *pricer.Candle) {
-	color := ""
-	switch buf.Candle.Color {
-	case pricer.ColorRed:
-		color = pricer.Red
-	case pricer.ColorGreen:
-		color = pricer.Green
+func (buf *Buffer) getTemplateCandle() (*pricer.Candle, bool) {
+	switch buf.Size {
+	case 3:
+		return buf.Candles[1], true
+	case 4:
+		candles := make([]*pricer.Candle, 2)
+		candles[0] = buf.Candles[1]
+		candles[1] = buf.Candles[2]
+		return mergeCandles(candles)
+	case 5:
+		candles := make([]*pricer.Candle, 3)
+		candles[0] = buf.Candles[1]
+		candles[1] = buf.Candles[2]
+		candles[2] = buf.Candles[3]
+		return mergeCandles(candles)
 	default:
-		color = pricer.Reset // No color or default terminal color
+		return &pricer.Candle{}, false
 	}
-
-	fmt.Printf("%sBreakdown found!\t Time: %s\t Template time: %s\t %s\n",
-		color,
-		time.Unix(candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-		time.Unix(buf.Candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-		pricer.Reset,
-	)
 }

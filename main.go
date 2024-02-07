@@ -7,6 +7,9 @@ import (
 	"log"
 )
 
+// chat_id: 1811775131 Nurtilek
+// chat_id: 1025535666 Dima
+
 func main() {
 	candles, err := pricer.LoadCandlesFromFile("./data/btc_usdt_5m_3d.csv")
 	if err != nil {
