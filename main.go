@@ -48,13 +48,7 @@ func simulation(cfg *config.Config) error {
 		log.Fatal(err)
 	}
 
-	mng, err := core.NewManager(&core.Param{
-		BreakdownPercent: cfg.Trade.Breakdown.Percent,
-		BreakdownMinSize: cfg.Trade.Breakdown.MinSize,
-		BreakdownMaxSize: cfg.Trade.Breakdown.MaxSize,
-		MotionMinSize:    cfg.Trade.Breakdown.MinSize,
-		MotionMaxSize:    cfg.Trade.Breakdown.MaxSize,
-	})
+	mng, err := core.NewManager(cfg)
 	if err != nil {
 		return err
 	}
@@ -100,13 +94,7 @@ func realtime(cfg *config.Config) error {
 			go func(pair, timeframe string) {
 				defer wg.Done()
 
-				mng, err := core.NewManager(&core.Param{
-					BreakdownPercent: cfg.Trade.Breakdown.Percent,
-					BreakdownMinSize: cfg.Trade.Breakdown.MinSize,
-					BreakdownMaxSize: cfg.Trade.Breakdown.MaxSize,
-					MotionMinSize:    cfg.Trade.Breakdown.MinSize,
-					MotionMaxSize:    cfg.Trade.Breakdown.MaxSize,
-				})
+				mng, err := core.NewManager(cfg)
 				if err != nil {
 					log.Fatal(err)
 				}

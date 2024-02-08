@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"github.com/nurtidev/predictor/config"
 	"github.com/nurtidev/predictor/pricer"
 )
 
@@ -25,20 +26,20 @@ type Param struct {
 	MotionMaxSize    int
 }
 
-func NewManager(param *Param) (*Manager, error) {
+func NewManager(cfg *config.Config) (*Manager, error) {
 	pool := make([]*Buffer, 0)
-	pool = append(pool, NewBuffer(3))
-	pool = append(pool, NewBuffer(4))
-	pool = append(pool, NewBuffer(5))
+	pool = append(pool, NewBuffer(cfg, 3))
+	pool = append(pool, NewBuffer(cfg, 4))
+	pool = append(pool, NewBuffer(cfg, 5))
 	return &Manager{
 		Map:              make(map[int]*pricer.Candle),
 		Pool:             pool,
 		Storage:          make([]*Buffer, 0),
-		BreakdownMaxSize: param.BreakdownMaxSize,
-		BreakdownMinSize: param.BreakdownMinSize,
-		BreakdownPercent: param.BreakdownPercent,
-		MotionMaxSize:    param.MotionMaxSize,
-		MotionMinSize:    param.MotionMinSize,
+		BreakdownMaxSize: cfg.Trade.Breakdown.MaxSize,
+		BreakdownMinSize: cfg.Trade.Breakdown.MinSize,
+		BreakdownPercent: cfg.Trade.Breakdown.Percent,
+		MotionMaxSize:    cfg.Trade.Motion.MaxSize,
+		MotionMinSize:    cfg.Trade.Motion.MinSize,
 	}, nil
 }
 
@@ -50,12 +51,12 @@ func (mng *Manager) ProcessCandle(candle *pricer.Candle) error {
 		buf.Candles = append(buf.Candles, candle)
 		if len(buf.Candles) == buf.Size {
 			if buf.checkTemplate() {
-				//buf.Candles[1].Print("Template candle")
 				template, success := buf.getTemplateCandle()
 				if !success {
 					return errors.New("can't set template candle")
 				}
 				mng.Storage = append(mng.Storage, &Buffer{
+					cfg:       buf.cfg,
 					Status:    WaitMotionCandlesStatus,
 					Size:      buf.Size,
 					Lifetime:  buf.Lifetime,

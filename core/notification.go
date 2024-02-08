@@ -10,15 +10,16 @@ import (
 
 // chat_id: 1811775131 Nurtilek
 // chat_id: 1025535666 Dima
-func sendMsgTelegram(str string) {
-	bot, err := tgbotapi.NewBotAPI("6809455254:AAFEZlurUlCq8YBC7mtnc-a_TvgSF1mCs8U")
+func (buf *Buffer) sendMsgTelegram(str string) {
+	bot, err := tgbotapi.NewBotAPI(buf.cfg.Telegram.Token)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	arr := make([]int64, 0)
-	arr = append(arr, 1811775131)
-	arr = append(arr, 1025535666)
+	arr := make([]int64, len(buf.cfg.Telegram.Users))
+	for i := range arr {
+		arr[i] = int64(buf.cfg.Telegram.Users[i])
+	}
 
 	for _, chatId := range arr {
 		msg := tgbotapi.NewMessage(chatId, str)
@@ -37,19 +38,21 @@ func (buf *Buffer) Alert(candle *pricer.Candle) {
 		color = pricer.Reset // No color or default terminal color
 	}
 
-	str := fmt.Sprintf("💣 BOOOOOM 💣 \n Market: %s\n Timeframe: %s\n Breakdown found!\n Time: %s\n Template time: %s\n \n",
-		candle.Market,
-		candle.Timeframe,
-		time.Unix(candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-		time.Unix(buf.Candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-	)
+	if buf.cfg.Telegram.Enable {
+		str := fmt.Sprintf("💣 BOOOOOM 💣 \n Market: %s\n Timeframe: %s\n Breakdown found!\n Time: %s\n Template time: %s\n \n",
+			candle.Market,
+			candle.Timeframe,
+			time.UnixMilli(candle.Time).UTC().Format(time.DateTime),
+			time.UnixMilli(buf.Candle.Time).UTC().Format(time.DateTime),
+		)
 
-	sendMsgTelegram(str)
+		buf.sendMsgTelegram(str)
+	}
 
 	fmt.Printf("%sBreakdown found!\t Time: %s\t Template time: %s\t %s\n",
 		color,
-		time.Unix(candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
-		time.Unix(buf.Candle.Time, 0).UTC().Format("2006-01-02 15:04:05"),
+		time.UnixMilli(candle.Time).UTC().Format(time.DateTime),
+		time.UnixMilli(buf.Candle.Time).UTC().Format(time.DateTime),
 		pricer.Reset,
 	)
 }

@@ -143,7 +143,7 @@ func parseRecord(record []string) (*Candle, error) {
 
 	return &Candle{
 		Color:  color,
-		Time:   time,
+		Time:   time * 1000, // конвертируем в millisecond
 		Open:   openPrice,
 		Close:  closePrice,
 		Low:    low,

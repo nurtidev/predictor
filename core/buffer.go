@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/nurtidev/predictor/config"
 	"github.com/nurtidev/predictor/pricer"
 )
 
@@ -15,6 +16,7 @@ var (
 )
 
 type Buffer struct {
+	cfg       *config.Config
 	Status    CandleStatus
 	Size      int
 	Lifetime  int
@@ -37,8 +39,9 @@ type Breakdown struct {
 	Candles []*pricer.Candle
 }
 
-func NewBuffer(size int) *Buffer {
+func NewBuffer(cfg *config.Config, size int) *Buffer {
 	return &Buffer{
+		cfg:     cfg,
 		Size:    size,
 		Candles: make([]*pricer.Candle, 0),
 		Status:  WaitTemplateCandlesStatus, // Начальное состояние

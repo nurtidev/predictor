@@ -11,8 +11,9 @@ type Config struct {
 	Market    []string `yaml:"market"`
 	Timeframe []string `yaml:"timeframe"`
 	Telegram  struct {
-		Token string `yaml:"token"`
-		Users []int  `yaml:"users"`
+		Enable bool   `yaml:"enable"`
+		Token  string `yaml:"token"`
+		Users  []int  `yaml:"users"`
 	} `yaml:"telegram"`
 	Trade struct {
 		Breakdown struct {

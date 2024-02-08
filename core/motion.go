@@ -37,8 +37,10 @@ func (buf *Buffer) isValidMotion() bool {
 	candle := buf.Motion.Candles[len(buf.Motion.Candles)-1]
 	switch buf.Candle.Color {
 	case pricer.ColorRed:
+
 		return candle.Close > buf.Candle.Open
 	case pricer.ColorGreen:
+
 		return candle.Close < buf.Candle.Open
 	}
 	return false
