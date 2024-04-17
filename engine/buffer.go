@@ -19,6 +19,7 @@ func initPools(cfg *config.Config) []*Pool {
 
 func initBuffer(cfg *config.Config, size int, candle *pricer.Candle, candles []*pricer.Candle) *Buffer {
 	return &Buffer{
+		status: WaitMotion,
 		template: &Template{
 			Candle:  candle,
 			Size:    size,

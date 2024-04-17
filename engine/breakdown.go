@@ -7,11 +7,6 @@ import (
 
 // checkBreakdown проверяет условия пробоя
 func (buf *Buffer) checkBreakdown(candle *pricer.Candle) error {
-	if len(buf.breakdown.Candles) > buf.breakdown.MaxSize {
-		buf.status = Canceled
-		return nil
-	}
-
 	if isDifferentColor(buf.template.Candle, candle) {
 		if buf.isValidBreakdown() {
 			buf.status = WaitAlert
@@ -28,6 +23,10 @@ func (buf *Buffer) checkBreakdown(candle *pricer.Candle) error {
 
 func (buf *Buffer) isValidBreakdown() bool {
 	if len(buf.breakdown.Candles) < buf.breakdown.MinSize {
+		return false
+	}
+
+	if len(buf.breakdown.Candles) > buf.breakdown.MaxSize {
 		return false
 	}
 

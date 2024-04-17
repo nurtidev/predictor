@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+var IdxMotion int
+var IdxBreakdown int
+
 const (
 	ColorRed   = "RED"
 	ColorGreen = "GREEN"
@@ -47,7 +50,6 @@ func (c *Candle) Print(header string) {
 }
 
 type Candle struct {
-	Idx       int
 	Market    string
 	Timeframe string
 	Color     string

@@ -15,6 +15,7 @@ func (buf *Buffer) checkMotion(candle *pricer.Candle) error {
 
 	if isSameColor(buf.template.Candle, candle) {
 		if buf.isValidMotion() {
+			pricer.IdxMotion++
 			buf.breakdown.Candles = append(buf.breakdown.Candles, candle)
 			buf.status = WaitBreakdown
 			return nil
@@ -35,10 +36,8 @@ func (buf *Buffer) isValidMotion() bool {
 	candle := buf.motion.Candles[len(buf.motion.Candles)-1]
 	switch buf.template.Candle.Color {
 	case pricer.ColorRed:
-
 		return candle.Close > buf.template.Candle.Open
 	case pricer.ColorGreen:
-
 		return candle.Close < buf.template.Candle.Open
 	}
 	return false

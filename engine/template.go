@@ -3,10 +3,6 @@ package engine
 import "github.com/nurtidev/predictor/pricer"
 
 func checkTemplate(candles []*pricer.Candle, size int) bool {
-	if len(candles) != size {
-		return false
-	}
-
 	switch size {
 	case 3:
 		// Для трех свечей: средняя свеча должна быть другого цвета
@@ -78,7 +74,6 @@ func mergeCandles(candles []*pricer.Candle) (*pricer.Candle, bool) {
 		totalVolume += candle.Volume
 		if i == len(candles)-2 { // Проверяем, что все свечи одного цвета
 			return &pricer.Candle{
-				Idx:       candles[0].Idx,
 				Market:    candles[0].Market,
 				Timeframe: candles[0].Timeframe,
 				Color:     candles[0].Color,

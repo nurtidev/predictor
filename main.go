@@ -52,6 +52,12 @@ func simulation(cfg *config.Config) error {
 	//if err != nil {
 	//	return err
 	//}
+	//
+	//for _, candle := range candles {
+	//	if err = mng.ProcessCandle(candle); err != nil {
+	//		return err
+	//	}
+	//}
 
 	eng := engine.New(cfg)
 
@@ -90,7 +96,6 @@ func realtime(cfg *config.Config) error {
 					log.Fatal(err)
 				}
 				candle.Print("START CANDLE! ")
-				candle.Idx = idx
 				if err = mng.ProcessCandle(candle); err != nil {
 					log.Fatal(err)
 				}
@@ -105,7 +110,6 @@ func realtime(cfg *config.Config) error {
 						log.Fatal(err)
 					}
 
-					candle.Idx = idx
 					if err = mng.ProcessCandle(candle); err != nil {
 						log.Fatal(err)
 					}

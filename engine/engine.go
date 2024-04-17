@@ -8,6 +8,7 @@ import (
 
 func New(cfg *config.Config) *Engine {
 	return &Engine{
+		cfg:      cfg,
 		buffers:  make([]*Buffer, 0),
 		pools:    initPools(cfg),
 		fractals: make([]*Fractal, 0),
@@ -20,16 +21,20 @@ func (e *Engine) Process(candle *pricer.Candle) error {
 	for _, pool := range e.pools {
 		pool.candles = append(pool.candles, candle)
 
-		if len(pool.candles) == pool.size && checkTemplate(pool.candles, pool.size) {
-			template, success := getTemplateCandle(pool.candles, pool.size)
-			if !success {
-				return errors.New("can't set template candle")
+		if len(pool.candles) == pool.size {
+			if checkTemplate(pool.candles, pool.size) {
+				template, success := getTemplateCandle(pool.candles, pool.size)
+				if !success {
+					return errors.New("can't set template candle")
+				}
+
+				buf := initBuffer(e.cfg, pool.size, template, pool.candles)
+
+				e.buffers = append(e.buffers, buf)
 			}
 
-			buf := initBuffer(e.cfg, pool.size, template, pool.candles)
-			e.buffers = append(e.buffers, buf)
+			pool.candles = pool.candles[1:]
 		}
-		pool.candles = pool.candles[1:]
 	}
 
 	for _, buf := range e.buffers {
