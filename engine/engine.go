@@ -8,11 +8,11 @@ import (
 
 func New(cfg *config.Config) *Engine {
 	return &Engine{
-		cfg:      cfg,
-		buffers:  make([]*Buffer, 0),
-		pools:    initPools(cfg),
-		fractals: make([]*Fractal, 0),
-		metrics:  &Trade{},
+		cfg:     cfg,
+		buffers: make([]*Buffer, 0),
+		pools:   initPools(cfg),
+		fractal: initFractal(),
+		metrics: &Trade{},
 	}
 }
 
@@ -37,6 +37,10 @@ func (e *Engine) Process(candle *pricer.Candle) error {
 		}
 	}
 
+	if err := e.collectFractals(candle); err != nil {
+		return err
+	}
+
 	for _, buf := range e.buffers {
 		if err := buf.Scan(candle); err != nil {
 			return err
@@ -44,6 +48,7 @@ func (e *Engine) Process(candle *pricer.Candle) error {
 
 		if buf.status == WaitAlert && e.isConfirmed(buf) {
 			buf.Alert(candle)
+			buf.status = Done
 		}
 	}
 
@@ -55,5 +60,36 @@ func (e *Engine) isConfirmed(buf *Buffer) bool {
 }
 
 func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
+	switch buf.template.Candle.Color {
+	case pricer.ColorRed:
+		if len(e.fractal.High) < 2 {
+			return false
+		}
+
+		for k, v := range e.fractal.High {
+			if v.Time == buf.template.Candle.Time && k > 1 {
+				idx := k
+				if e.fractal.High[idx].High > e.fractal.High[idx-1].High {
+					return true
+				}
+			}
+		}
+
+	case pricer.ColorGreen:
+		if len(e.fractal.Low) < 2 {
+			return false
+		}
+
+		for k, v := range e.fractal.High {
+			if v.Time == buf.template.Candle.Time && k > 1 {
+				idx := k
+				if e.fractal.Low[idx].Low > e.fractal.Low[idx-1].Low {
+					return true
+				}
+			}
+		}
+
+	}
+
 	return false
 }

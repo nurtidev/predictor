@@ -1,5 +1,5 @@
 mode: "simulation" #simulation or realtime
-filepath: "./data/btc_usdt_5m_3d.csv"
+filepath: "./data/btc_usdt_5m_30d.csv"
 market:
   - BTCUSDT
   - ETHUSDT

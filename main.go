@@ -48,17 +48,6 @@ func simulation(cfg *config.Config) error {
 		log.Fatal(err)
 	}
 
-	//mng, err := core.NewManager(cfg)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//for _, candle := range candles {
-	//	if err = mng.ProcessCandle(candle); err != nil {
-	//		return err
-	//	}
-	//}
-
 	eng := engine.New(cfg)
 
 	for _, candle := range candles {

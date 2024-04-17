@@ -16,11 +16,11 @@ const (
 )
 
 type Engine struct {
-	cfg      *config.Config
-	buffers  []*Buffer
-	pools    []*Pool
-	fractals []*Fractal
-	metrics  *Trade
+	cfg     *config.Config
+	buffers []*Buffer
+	pools   []*Pool
+	fractal *Fractal
+	metrics *Trade
 }
 
 type Pool struct {
@@ -34,6 +34,10 @@ type Trade struct {
 }
 
 type Fractal struct {
+	HighIdx int
+	LowIdx  int
+	High    map[int]*pricer.Candle
+	Low     map[int]*pricer.Candle
 	Candles []*pricer.Candle
 }
 
