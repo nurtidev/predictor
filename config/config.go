@@ -16,7 +16,8 @@ type Config struct {
 		Users  []int  `yaml:"users"`
 	} `yaml:"telegram"`
 	Trade struct {
-		Breakdown struct {
+		BufferSize []int `yaml:"buffer_size"`
+		Breakdown  struct {
 			Percent float64 `yaml:"percent"`
 			MinSize int     `yaml:"min_size"`
 			MaxSize int     `yaml:"max_size"`

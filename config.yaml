@@ -13,6 +13,10 @@ telegram:
     - 1811775131
     - 1025535666
 trade:
+  buffer_size:
+    - 3
+    - 4
+    - 5
   breakdown:
     percent: 0.2
     min_size: 3
