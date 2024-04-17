@@ -1,12 +1,31 @@
 package engine
 
-import "github.com/nurtidev/predictor/pricer"
+import (
+	"github.com/nurtidev/predictor/config"
+	"github.com/nurtidev/predictor/pricer"
+)
+
+type bufferStatus string
+
+const (
+	WaitMotion    bufferStatus = "wait_motion"
+	WaitBreakdown bufferStatus = "wait_breakdown"
+	WaitAlert     bufferStatus = "wait_alert"
+	Canceled      bufferStatus = "canceled" // todo: возможно у нас будут разные типы cancel для статистики
+	Done          bufferStatus = "done"
+)
 
 type Engine struct {
+	cfg      *config.Config
 	buffers  []*Buffer
-	pool     []*pricer.Candle
+	pools    []*Pool
 	fractals []*Fractal
 	metrics  *Trade
+}
+
+type Pool struct {
+	size    int
+	candles []*pricer.Candle
 }
 
 type Trade struct {
@@ -19,6 +38,7 @@ type Fractal struct {
 }
 
 type Buffer struct {
+	status    bufferStatus
 	template  *Template
 	motion    *Motion
 	breakdown *Breakdown
@@ -26,6 +46,7 @@ type Buffer struct {
 
 type Template struct {
 	Size    int
+	Candle  *pricer.Candle
 	Candles []*pricer.Candle
 }
 

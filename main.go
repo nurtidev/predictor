@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/nurtidev/predictor/config"
 	"github.com/nurtidev/predictor/core"
+	"github.com/nurtidev/predictor/engine"
 	"github.com/nurtidev/predictor/pricer"
 	"log"
 	"sync"
@@ -48,38 +48,18 @@ func simulation(cfg *config.Config) error {
 		log.Fatal(err)
 	}
 
-	mng, err := core.NewManager(cfg)
-	if err != nil {
-		return err
-	}
+	//mng, err := core.NewManager(cfg)
+	//if err != nil {
+	//	return err
+	//}
 
-	for i, candle := range candles {
-		candle.Idx = i
-		if err = mng.ProcessCandle(candle); err != nil {
+	eng := engine.New(cfg)
+
+	for _, candle := range candles {
+		if err = eng.Process(candle); err != nil {
 			return err
 		}
 	}
-
-	templateCount, motionCount, breakdownCount, alertCount := 0, 0, 0, 0
-
-	for _, v := range mng.Storage {
-		if len(v.Motion.Candles) > 0 {
-			motionCount++
-		}
-		if len(v.Breakdown.Candles) > 0 {
-			breakdownCount++
-		}
-		if v.Status == core.AlertCandlesStatus {
-			alertCount++
-		}
-	}
-
-	templateCount = len(mng.Storage)
-
-	fmt.Printf("templateCount: %d\n", templateCount)
-	fmt.Printf("motionCount: %d\n", motionCount)
-	fmt.Printf("breakdownCount: %d\n", breakdownCount)
-	fmt.Printf("alertCount: %d\n", alertCount)
 
 	return nil
 }
