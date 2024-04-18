@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"github.com/nurtidev/predictor/pricer"
 )
 
@@ -27,16 +26,16 @@ func (e *Engine) collectFractals(candle *pricer.Candle) error {
 			middleCandle.Low < e.fractal.Candles[3].Low && middleCandle.Low < e.fractal.Candles[4].Low
 
 		if isFractalHigh {
-			fmt.Println("found high fractal")
 			e.fractal.High[e.fractal.HighIdx] = middleCandle
 			e.fractal.HighIdx++
 		}
 
 		if isFractalLow {
-			fmt.Println("found low fractal")
 			e.fractal.Low[e.fractal.LowIdx] = middleCandle
 			e.fractal.LowIdx++
 		}
+
+		e.fractal.Candles = e.fractal.Candles[1:]
 
 	}
 

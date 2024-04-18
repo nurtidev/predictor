@@ -56,7 +56,7 @@ func (e *Engine) Process(candle *pricer.Candle) error {
 }
 
 func (e *Engine) isConfirmed(buf *Buffer) bool {
-	return true
+	return e.isFractalConfirmed(buf)
 }
 
 func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
@@ -67,7 +67,7 @@ func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
 		}
 
 		for k, v := range e.fractal.High {
-			if v.Time == buf.template.Candle.Time && k > 1 {
+			if isExistByTime(v, buf.template.Candles) && k > 1 {
 				idx := k
 				if e.fractal.High[idx].High > e.fractal.High[idx-1].High {
 					return true
@@ -80,8 +80,8 @@ func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
 			return false
 		}
 
-		for k, v := range e.fractal.High {
-			if v.Time == buf.template.Candle.Time && k > 1 {
+		for k, v := range e.fractal.Low {
+			if isExistByTime(v, buf.template.Candles) && k > 1 {
 				idx := k
 				if e.fractal.Low[idx].Low > e.fractal.Low[idx-1].Low {
 					return true
@@ -91,5 +91,14 @@ func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
 
 	}
 
+	return false
+}
+
+func isExistByTime(candle *pricer.Candle, candles []*pricer.Candle) bool {
+	for _, v := range candles {
+		if candle.Time == v.Time {
+			return true
+		}
+	}
 	return false
 }
