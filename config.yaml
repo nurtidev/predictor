@@ -19,8 +19,8 @@ trade:
     - 5
   breakdown:
     percent: 0.2
-    min_size: 3
+    min_size: 2
     max_size: 10
   motion:
-    min_size: 2
+    min_size: 1
     max_size: 10

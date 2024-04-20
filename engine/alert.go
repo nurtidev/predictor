@@ -28,8 +28,10 @@ func (buf *Buffer) Alert(candle *pricer.Candle) {
 	//	buf.sendMsgTelegram(str)
 	//}
 
-	fmt.Printf("%sBreakdown found!\t Time: %s\t Template time: %s\t %s\n",
+	fmt.Printf("%sBreakdown found!\t Market: %s\t Timeframe: %s\t Current Time: %s\t Template time: %s\t %s\n",
 		color,
+		candle.Market,
+		candle.Timeframe,
 		time.UnixMilli(candle.Time).UTC().Format(time.DateTime),
 		time.UnixMilli(buf.template.Candle.Time).UTC().Format(time.DateTime),
 		pricer.Reset,

@@ -60,14 +60,17 @@ func (e *Engine) isConfirmed(buf *Buffer) bool {
 }
 
 func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
+	candles := make([]*pricer.Candle, 0)
+	candles = append(candles, buf.motion.Candles...)
+	candles = append(candles, buf.breakdown.Candles...)
+
 	switch buf.template.Candle.Color {
 	case pricer.ColorRed:
 		if len(e.fractal.High) < 2 {
 			return false
 		}
-
 		for k, v := range e.fractal.High {
-			if isExistByTime(v, buf.template.Candles) && k > 1 {
+			if isExistByTime(v, candles) && k > 1 {
 				idx := k
 				if e.fractal.High[idx].High > e.fractal.High[idx-1].High {
 					return true
@@ -81,7 +84,7 @@ func (e *Engine) isFractalConfirmed(buf *Buffer) bool {
 		}
 
 		for k, v := range e.fractal.Low {
-			if isExistByTime(v, buf.template.Candles) && k > 1 {
+			if isExistByTime(v, candles) && k > 1 {
 				idx := k
 				if e.fractal.Low[idx].Low > e.fractal.Low[idx-1].Low {
 					return true

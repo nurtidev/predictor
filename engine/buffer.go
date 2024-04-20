@@ -18,6 +18,22 @@ func initPools(cfg *config.Config) []*Pool {
 }
 
 func initBuffer(cfg *config.Config, size int, candle *pricer.Candle, candles []*pricer.Candle) *Buffer {
+	//color := ""
+	//switch candle.Color {
+	//case pricer.ColorRed:
+	//	color = pricer.Red
+	//case pricer.ColorGreen:
+	//	color = pricer.Green
+	//default:
+	//	color = pricer.Reset // No color or default terminal color
+	//}
+	//fmt.Printf("%sTemplate found!\t Market: %s\t Timeframe: %s\t Template time: %s\t %s\n",
+	//	color,
+	//	candle.Market,
+	//	candle.Timeframe,
+	//	time.UnixMilli(candle.Time).UTC().Format(time.DateTime),
+	//	pricer.Reset,
+	//)
 	return &Buffer{
 		status: WaitMotion,
 		template: &Template{
