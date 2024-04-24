@@ -1,5 +1,5 @@
 mode: "simulation" #simulation or realtime
-filepath: "./data/btc_usdt_5m_3d.csv"
+filepath: "./data/btc_usdt_15m_3d.csv"
 market:
   - BTCUSDT
   - ETHUSDT
@@ -24,3 +24,6 @@ trade:
   motion:
     min_size: 1
     max_size: 10
+filters:
+  fractal:
+    size: 5

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/nurtidev/predictor/config"
 	"github.com/nurtidev/predictor/core"
 	"github.com/nurtidev/predictor/engine"
@@ -64,6 +65,8 @@ func simulation(cfg *config.Config) error {
 			return err
 		}
 	}
+
+	fmt.Println("Total signals count: ", eng.Metrics.SignalsCount)
 
 	return nil
 }

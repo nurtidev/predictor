@@ -27,6 +27,11 @@ type Config struct {
 			MaxSize int `yaml:"max_size"`
 		} `yaml:"motion"`
 	} `yaml:"trade"`
+	Filters struct {
+		Fractal struct {
+			Size int `yaml:"size"`
+		} `yaml:"fractal"`
+	} `yaml:"filters"`
 }
 
 func LoadConfig() (*Config, error) {

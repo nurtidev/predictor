@@ -20,7 +20,7 @@ type Engine struct {
 	buffers []*Buffer
 	pools   []*Pool
 	fractal *Fractal
-	metrics *Trade
+	Metrics *Metrics
 }
 
 type Pool struct {
@@ -28,16 +28,14 @@ type Pool struct {
 	candles []*pricer.Candle
 }
 
-type Trade struct {
+type Metrics struct {
 	Balance      float64
 	SignalsCount int
 }
 
 type Fractal struct {
-	HighIdx int
-	LowIdx  int
-	High    map[int]*pricer.Candle
-	Low     map[int]*pricer.Candle
+	High    []*pricer.Candle
+	Low     []*pricer.Candle
 	Candles []*pricer.Candle
 }
 

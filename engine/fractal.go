@@ -1,44 +1,53 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/nurtidev/predictor/pricer"
 )
 
 func initFractal() *Fractal {
 	return &Fractal{
-		HighIdx: 0,
-		LowIdx:  0,
-		High:    make(map[int]*pricer.Candle),
-		Low:     make(map[int]*pricer.Candle),
+		High:    make([]*pricer.Candle, 0),
+		Low:     make([]*pricer.Candle, 0),
 		Candles: make([]*pricer.Candle, 0),
 	}
 }
 
-func (e *Engine) collectFractals(candle *pricer.Candle) error {
+func (e *Engine) collectFractals(candle *pricer.Candle, windowSize int) error {
+	if windowSize%2 == 0 || windowSize < 5 {
+		return fmt.Errorf("windowSize must be an odd number and at least 5")
+	}
+
 	e.fractal.Candles = append(e.fractal.Candles, candle)
 
-	if len(e.fractal.Candles) == 5 {
-		middleCandle := e.fractal.Candles[2]
+	if len(e.fractal.Candles) == windowSize {
+		middleIndex := windowSize / 2
+		middleCandle := e.fractal.Candles[middleIndex]
 
-		isFractalHigh := middleCandle.High > e.fractal.Candles[1].High && middleCandle.High > e.fractal.Candles[0].High &&
-			middleCandle.High > e.fractal.Candles[3].High && middleCandle.High > e.fractal.Candles[4].High
-		isFractalLow := middleCandle.Low < e.fractal.Candles[1].Low && middleCandle.Low < e.fractal.Candles[0].Low &&
-			middleCandle.Low < e.fractal.Candles[3].Low && middleCandle.Low < e.fractal.Candles[4].Low
+		isFractalHigh := true
+		isFractalLow := true
+
+		for i := 0; i < windowSize; i++ {
+			if i != middleIndex {
+				if middleCandle.High <= e.fractal.Candles[i].High {
+					isFractalHigh = false
+				}
+				if middleCandle.Low >= e.fractal.Candles[i].Low {
+					isFractalLow = false
+				}
+			}
+		}
 
 		if isFractalHigh {
-			e.fractal.High[e.fractal.HighIdx] = middleCandle
-			e.fractal.HighIdx++
+			e.fractal.High = append(e.fractal.High, middleCandle)
 		}
 
 		if isFractalLow {
-			e.fractal.Low[e.fractal.LowIdx] = middleCandle
-			e.fractal.LowIdx++
+			e.fractal.Low = append(e.fractal.Low, middleCandle)
 		}
 
 		e.fractal.Candles = e.fractal.Candles[1:]
-
 	}
 
 	return nil
-
 }
